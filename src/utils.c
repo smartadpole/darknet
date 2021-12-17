@@ -277,6 +277,12 @@ void replace_image_to_label(const char* input_path, char* output_path)
     //find_replace(output_path, "/VOC2012/JPEGImages/", "/VOC2012/labels/", output_path);        // PascalVOC
 
     //find_replace(output_path, "/raw/", "/labels/", output_path);
+    if (!strcmp(input_path, output_path))
+    {
+         find_replace(output_path, "/images/", "/labels/", output_path);
+         find_replace(output_path, "\\images\\", "\\labels\\", output_path);
+    }
+
     trim(output_path);
 
     // replace only ext of files

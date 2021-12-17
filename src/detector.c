@@ -162,9 +162,9 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     args.show_imgs = show_imgs;
 
 #ifdef OPENCV
-    //int num_threads = get_num_threads();
-    //if(num_threads > 2) args.threads = get_num_threads() - 2;
-    args.threads = 6 * ngpus;   // 3 for - Amazon EC2 Tesla V100: p3.2xlarge (8 logical cores) - p3.16xlarge
+    int num_threads = get_num_threads();
+    if(num_threads > 2) args.threads = (int)(get_num_threads()*0.7);
+    //    args.threads = 6 * ngpus;   // 3 for - Amazon EC2 Tesla V100: p3.2xlarge (8 logical cores) - p3.16xlarge
     //args.threads = 12 * ngpus;    // Ryzen 7 2700X (16 logical cores)
     mat_cv* img = NULL;
     float max_img_loss = net.max_chart_loss;
@@ -298,7 +298,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
         const int iteration = get_current_iteration(net);
         //i = get_current_batch(net);
 
-        int calc_map_for_each = 4 * train_images_num / (net.batch * net.subdivisions);  // calculate mAP for each 4 Epochs
+        int calc_map_for_each = 1 * train_images_num / (net.batch * net.subdivisions);  // calculate mAP for each 4 Epochs
         calc_map_for_each = fmax(calc_map_for_each, 100);
         int next_map_calc = iter_map + calc_map_for_each;
         next_map_calc = fmax(next_map_calc, net.burn_in);
@@ -929,6 +929,9 @@ int detections_comparator(const void *pa, const void *pb)
 
 float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, float thresh_calc_avg_iou, const float iou_thresh, const int map_points, int letter_box, network *existing_net)
 {
+    FILE* fp_file = fopen("fp.txt", "w");
+    FILE* fn_file = fopen("fn.txt", "w");
+
     int j;
     list *options = read_data_cfg(datacfg);
     char *valid_images = option_find_str(options, "valid", "data/train.txt");
@@ -1036,7 +1039,7 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
     }
     time_t start = time(0);
     for (i = nthreads; i < m + nthreads; i += nthreads) {
-        fprintf(stderr, "\r%d", i);
+        fprintf(stderr, "\r\033[k%d", i);
         for (t = 0; t < nthreads && (i + t - nthreads) < m; ++t) {
             pthread_join(thr[t], 0);
             val[t] = buf[t];
@@ -1227,8 +1230,8 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
 
     int rank;
     for (rank = 0; rank < detections_count; ++rank) {
-        if (rank % 100 == 0)
-            printf(" rank = %d of ranks = %d \r", rank, detections_count);
+//        if (rank % 100 == 0)
+//            printf(" rank = %d of ranks = %d \r", rank, detections_count);
 
         if (rank > 0) {
             int class_id;
@@ -1246,11 +1249,13 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             {
                 truth_flags[d.unique_truth_index] = 1;
                 pr[d.class_id][rank].tp++;    // true-positive
+                fprintf(fp_file, "fp: %s\n", paths[d.image_index]);
             } else
                 pr[d.class_id][rank].fp++;
         }
         else {
             pr[d.class_id][rank].fp++;    // false-positive
+            fprintf(fp_file, "fp: %s\n", paths[d.image_index]);
         }
 
         for (i = 0; i < classes; ++i)
@@ -1266,8 +1271,10 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             if ((tp + fn) > 0) pr[i][rank].recall = (double)tp / (double)(tp + fn);
             else pr[i][rank].recall = 0;
 
-            if (rank == (detections_count - 1) && detection_per_class_count[i] != (tp + fp)) {    // check for last rank
-                    printf(" class_id: %d - detections = %d, tp+fp = %d, tp = %d, fp = %d \n", i, detection_per_class_count[i], tp+fp, tp, fp);
+            if (rank == (detections_count - 1) && detection_per_class_count[i] != (tp + fp))
+            {    // check for last rank
+                    printf(" class_id: %d - detections = %7d, tp+fp = %7d, tp = %6d, fp = %6d , fn = %6d \n"
+                            , i, detection_per_class_count[i], tp + fp, tp, fp, fn);
             }
         }
     }
@@ -1329,12 +1336,18 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
             avg_precision = avg_precision / map_points;
         }
 
-        printf("class_id = %d, name = %s, ap = %2.2f%%   \t (TP = %d, FP = %d) \n",
-            i, names[i], avg_precision * 100, tp_for_thresh_per_class[i], fp_for_thresh_per_class[i]);
-
         float class_precision = (float)tp_for_thresh_per_class[i] / ((float)tp_for_thresh_per_class[i] + (float)fp_for_thresh_per_class[i]);
         float class_recall = (float)tp_for_thresh_per_class[i] / ((float)tp_for_thresh_per_class[i] + (float)(truth_classes_count[i] - tp_for_thresh_per_class[i]));
-        //printf("Precision = %1.2f, Recall = %1.2f, avg IOU = %2.2f%% \n\n", class_precision, class_recall, avg_iou_per_class[i]);
+        printf("class_id =%2d, name =%16s, count = (%7d/%7d), ap = %2.2f%%  "
+               "(TP = %d, FP = %d, FN = %d, precision = %2.1f%%, recall = %2.1f%%, F1 = %2.1f%%, avg_iou = %2.1f%%) \n"
+                , i, names[i], truth_classes_count[i], detection_per_class_count[i], avg_precision * 100
+                , tp_for_thresh_per_class[i]
+                , fp_for_thresh_per_class[i]
+                , truth_classes_count[i]-tp_for_thresh_per_class[i]
+                , class_precision*100, class_recall*100
+                , 2 * class_precision * class_recall / (class_precision + class_recall)*100
+                , avg_iou_per_class[i]*100);
+
 
         mean_average_precision += avg_precision;
     }
@@ -1393,6 +1406,9 @@ float validate_detector_map(char *datacfg, char *cfgfile, char *weightfile, floa
     if (thr) free(thr);
     if (buf) free(buf);
     if (buf_resized) free(buf_resized);
+
+    fclose(fp_file);
+    fclose(fn_file);
 
     return mean_average_precision;
 }
