@@ -1579,7 +1579,6 @@ void *load_thread(void *ptr)
     //srand(time(0));
     //printf("Loading data: %d\n", random_gen());
     load_args a = *(struct load_args*)ptr;
-
     if(a.exposure == 0) a.exposure = 1;
     if(a.saturation == 0) a.saturation = 1;
     if(a.aspect == 0) a.aspect = 1;

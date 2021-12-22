@@ -798,6 +798,7 @@ int rand_int(int min, int max)
     int r = (random_gen()%(max - min + 1)) + min;
     return r;
 }
+//return a random odd number in an interval
 int rand_int_odd(int min, int max)
 {
     if (max < min){

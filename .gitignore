@@ -10,6 +10,7 @@
 *.lib
 *.dylib
 *.pyc
+backup/
 mnist/
 data/
 caffe/

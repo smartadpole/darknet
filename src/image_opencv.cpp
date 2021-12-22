@@ -1274,13 +1274,13 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
         if (blur) {
             cv::Mat dst(sized.size(), sized.type());
             if (blur == 1) {
-                int Blur_size= rand_int_odd(blur_boundary[0],blur_boundary[1]);
-                cv::GaussianBlur(sized, dst, cv::Size(Blur_size, Blur_size), 0);
+                int blur_size= rand_int_odd(blur_boundary[0],blur_boundary[1]);
+                cv::GaussianBlur(sized, dst, cv::Size(blur_size, blur_size), 0);
                 //cv::bilateralFilter(sized, dst, 17, 75, 75);
             }
             else {
-                int Blur_size= rand_int_odd(blur_boundary[0],blur_boundary[1]);
-                cv::Size kernel_size = cv::Size(Blur_size, Blur_size);
+                int blur_size= rand_int_odd(blur_boundary[0],blur_boundary[1]);
+                cv::Size kernel_size = cv::Size(blur_size, blur_size);
                 cv::GaussianBlur(sized, dst, kernel_size, 0);
                 //cv::medianBlur(sized, dst, ksize);
                 //cv::bilateralFilter(sized, dst, ksize, 75, 75);
@@ -1320,9 +1320,9 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
             cv::randn(noise, 0, gaussian_noise);  //mean and variance
             cv::Mat sized_norm = sized + noise;
             //cv::normalize(sized_norm, sized_norm, 0.0, 255.0, cv::NORM_MINMAX, sized.type());
-            cv::imshow("source", sized);
-            cv::imshow("gaussian noise", sized_norm);
-            cv::waitKey(0);
+//            cv::imshow("source", sized);
+//            cv::imshow("gaussian noise", sized_norm);
+//            cv::waitKey(0);
             sized = sized_norm;
         }
 
