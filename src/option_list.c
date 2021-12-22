@@ -121,6 +121,26 @@ char *option_find_str_quiet(list *l, char *key, char *def)
     return def;
 }
 
+
+int *option_get_boundary(char *g)
+{
+    int len = strlen(g);
+    int n = 1;
+    int i;
+    for (i = 0; i < len; ++i) {
+        if (g[i] == '#') break;
+        if (g[i] == ',') ++n;
+    }
+    int *boundary = (int *) xcalloc(n, sizeof(int));
+
+    for (i = 0; i < n; ++i) {
+        int step = atoi(g);
+        g = strchr(g, ',') + 1;
+        boundary[i] = step;
+    }
+    return boundary;
+}
+
 int option_find_int(list *l, char *key, int def)
 {
     char *v = option_find(l, key);

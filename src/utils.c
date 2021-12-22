@@ -798,6 +798,22 @@ int rand_int(int min, int max)
     int r = (random_gen()%(max - min + 1)) + min;
     return r;
 }
+int rand_int_odd(int min, int max)
+{
+    if (max < min){
+        int s = min;
+        min = max;
+        max = s;
+    }
+    int r = (random_gen()%(max - min + 1)) + min;
+    if(r % 2){
+        return r;
+    }
+    else{
+        return r+1;
+    }
+
+}
 
 // From http://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
 float rand_normal()

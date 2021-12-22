@@ -102,7 +102,7 @@ void draw_train_loss(char *windows_name, mat_cv* img, int img_size, float avg_lo
 image image_data_augmentation(mat_cv* mat, int w, int h,
     int pleft, int ptop, int swidth, int sheight, int flip,
     float dhue, float dsat, float dexp,
-    int gaussian_noise, int blur, int num_boxes, int truth_size, float *truth);
+    int gaussian_noise,int * gaussian_noise_boundary, int blur, int * blur_boundary, int num_boxes, int truth_size, float *truth);
 
 // blend two images with (alpha and beta)
 void blend_images_cv(image new_img, float alpha, image old_img, float beta);

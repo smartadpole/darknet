@@ -1049,9 +1049,10 @@ void blend_truth_mosaic(float *new_truth, int boxes, int truth_size, float *old_
 
 #include "http_stream.h"
 
-data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int truth_size, int classes, int use_flip, int use_gaussian_noise, int use_blur, int use_mixup,
+data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int truth_size, int classes, int use_flip, int use_gaussian_noise, int * gaussian_noise_boundary, int use_blur, int * blur_boundary, int use_mixup,
     float jitter, float resize, float hue, float saturation, float exposure, int mini_batch, int track, int augment_speed, int letter_box, int mosaic_bound, int contrastive, int contrastive_jit_flip, int contrastive_color, int show_imgs)
 {
+
     const int random_index = random_gen();
     c = c ? c : 3;
 
@@ -1252,7 +1253,7 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
             if ((min_w_h / 8) < blur && blur > 1) blur = min_w_h / 8;   // disable blur if one of the objects is too small
 
             image ai = image_data_augmentation(src, w, h, pleft, ptop, swidth, sheight, flip, dhue, dsat, dexp,
-                gaussian_noise, blur, boxes, truth_size, truth);
+                gaussian_noise, gaussian_noise_boundary, blur, blur_boundary, boxes, truth_size, truth);
 
             if (use_mixup == 0) {
                 d.X.vals[i] = ai.data;
@@ -1578,6 +1579,7 @@ void *load_thread(void *ptr)
     //srand(time(0));
     //printf("Loading data: %d\n", random_gen());
     load_args a = *(struct load_args*)ptr;
+
     if(a.exposure == 0) a.exposure = 1;
     if(a.saturation == 0) a.saturation = 1;
     if(a.aspect == 0) a.aspect = 1;
@@ -1593,7 +1595,7 @@ void *load_thread(void *ptr)
     } else if (a.type == REGION_DATA){
         *a.d = load_data_region(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter, a.hue, a.saturation, a.exposure);
     } else if (a.type == DETECTION_DATA){
-        *a.d = load_data_detection(a.n, a.paths, a.m, a.w, a.h, a.c, a.num_boxes, a.truth_size, a.classes, a.flip, a.gaussian_noise, a.blur, a.mixup, a.jitter, a.resize,
+        *a.d = load_data_detection(a.n, a.paths, a.m, a.w, a.h, a.c, a.num_boxes, a.truth_size, a.classes, a.flip, a.gaussian_noise, a.gaussian_noise_boundary, a.blur, a.blur_boundary, a.mixup, a.jitter, a.resize,
             a.hue, a.saturation, a.exposure, a.mini_batch, a.track, a.augment_speed, a.letter_box, a.mosaic_bound, a.contrastive, a.contrastive_jit_flip, a.contrastive_color, a.show_imgs);
     } else if (a.type == SWAG_DATA){
         *a.d = load_data_swag(a.paths, a.n, a.classes, a.jitter);

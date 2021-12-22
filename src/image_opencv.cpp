@@ -1206,7 +1206,7 @@ extern "C" void draw_train_loss(char *windows_name, mat_cv* img_src, int img_siz
 extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
     int pleft, int ptop, int swidth, int sheight, int flip,
     float dhue, float dsat, float dexp,
-    int gaussian_noise, int blur, int num_boxes, int truth_size, float *truth)
+    int gaussian_noise,int * gaussian_noise_boundary, int blur, int * blur_boundary, int num_boxes, int truth_size, float *truth)
 {
     image out;
     try {
@@ -1274,12 +1274,13 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
         if (blur) {
             cv::Mat dst(sized.size(), sized.type());
             if (blur == 1) {
-                cv::GaussianBlur(sized, dst, cv::Size(17, 17), 0);
+                int Blur_size= rand_int_odd(blur_boundary[0],blur_boundary[1]);
+                cv::GaussianBlur(sized, dst, cv::Size(Blur_size, Blur_size), 0);
                 //cv::bilateralFilter(sized, dst, 17, 75, 75);
             }
             else {
-                int ksize = (blur / 2) * 2 + 1;
-                cv::Size kernel_size = cv::Size(ksize, ksize);
+                int Blur_size= rand_int_odd(blur_boundary[0],blur_boundary[1]);
+                cv::Size kernel_size = cv::Size(Blur_size, Blur_size);
                 cv::GaussianBlur(sized, dst, kernel_size, 0);
                 //cv::medianBlur(sized, dst, ksize);
                 //cv::bilateralFilter(sized, dst, ksize, 75, 75);
@@ -1312,15 +1313,16 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
         }
 
         if (gaussian_noise) {
+            gaussian_noise= rand_int(gaussian_noise_boundary[0],gaussian_noise_boundary[1]);
             cv::Mat noise = cv::Mat(sized.size(), sized.type());
             gaussian_noise = std::min(gaussian_noise, 127);
             gaussian_noise = std::max(gaussian_noise, 0);
             cv::randn(noise, 0, gaussian_noise);  //mean and variance
             cv::Mat sized_norm = sized + noise;
             //cv::normalize(sized_norm, sized_norm, 0.0, 255.0, cv::NORM_MINMAX, sized.type());
-            //cv::imshow("source", sized);
-            //cv::imshow("gaussian noise", sized_norm);
-            //cv::waitKey(0);
+            cv::imshow("source", sized);
+            cv::imshow("gaussian noise", sized_norm);
+            cv::waitKey(0);
             sized = sized_norm;
         }
 
@@ -1567,3 +1569,5 @@ extern "C" int wait_until_press_key_cv() { return 0; }
 extern "C" void destroy_all_windows_cv() {}
 extern "C" void resize_window_cv(char const* window_name, int width, int height) {}
 #endif // OPENCV
+
+

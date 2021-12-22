@@ -765,7 +765,9 @@ typedef struct network {
     int center;
     int flip; // horizontal flip 50% probability augmentaiont for classifier training (default = 1)
     int gaussian_noise;
+    int * gaussian_noise_boundary;
     int blur;
+    int * blur_boundary;
     int mixup;
     float label_smooth_eps;
     int resize_step;
@@ -976,7 +978,9 @@ typedef struct load_args {
     float resize;
     int flip;
     int gaussian_noise;
+    int * gaussian_noise_boundary;
     int blur;
+    int * blur_boundary;
     int mixup;
     float label_smooth_eps;
     float angle;

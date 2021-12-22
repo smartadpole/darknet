@@ -1260,6 +1260,23 @@ void parse_net_options(list *options, network *net)
     }
     else fprintf(stderr, " GPU isn't used \n");
 #endif// GPU
+
+    char *g = option_find(options, "gaussian_noise_boundary");
+    char *b = option_find(options, "blur_boundary");
+
+    //get gaussian_noise_boundary
+    if (net->gaussian_noise) {
+        int *gaussian_noise_boundary= option_get_boundary(g);
+        net->gaussian_noise_boundary = gaussian_noise_boundary;
+    }
+
+    //get blur_boundary
+    if (net->blur) {
+        int *blur_boundary= option_get_boundary(b);
+        net->blur_boundary = blur_boundary;
+    }
+
+
     if(net->policy == STEP){
         net->step = option_find_int(options, "step", 1);
         net->scale = option_find_float(options, "scale", 1);
