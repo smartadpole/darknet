@@ -122,20 +122,20 @@ char *option_find_str_quiet(list *l, char *key, char *def)
 }
 
 
-int *option_get_boundary(char *g)
+int *option_get_boundary(char *c)
 {
-    int len = strlen(g);
+    int len = strlen(c);
     int n = 1;
     int i;
     for (i = 0; i < len; ++i) {
-        if (g[i] == '#') break;
-        if (g[i] == ',') ++n;
+        if (c[i] == '#') break;
+        if (c[i] == ',') ++n;
     }
     int *boundary = (int *) xcalloc(n, sizeof(int));
 
     for (i = 0; i < n; ++i) {
-        int step = atoi(g);
-        g = strchr(g, ',') + 1;
+        int step = atoi(c);
+        c = strchr(c, ',') + 1;
         boundary[i] = step;
     }
     return boundary;

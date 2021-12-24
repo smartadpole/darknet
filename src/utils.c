@@ -807,11 +807,11 @@ int rand_int_odd(int min, int max)
         max = s;
     }
     int r = (random_gen()%(max - min + 1)) + min;
-    if(r % 2){
-        return r;
+    if(((r>>1)<<1) == r){
+        return r+1;
     }
     else{
-        return r+1;
+        return r;
     }
 
 }
