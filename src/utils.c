@@ -801,19 +801,10 @@ int rand_int(int min, int max)
 //return a random odd number in an interval
 int rand_int_odd(int min, int max)
 {
-    if (max < min){
-        int s = min;
-        min = max;
-        max = s;
-    }
-    int r = (random_gen()%(max - min + 1)) + min;
-    if(((r>>1)<<1) == r){
-        return r+1;
-    }
-    else{
-        return r;
-    }
+    int r= rand_int(min,max);
+    r=((r>>1)<<1)+1;
 
+    return r;
 }
 
 // From http://en.wikipedia.org/wiki/Box%E2%80%93Muller_transform
