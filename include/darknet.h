@@ -769,6 +769,7 @@ typedef struct network {
     int blur;
     int * blur_boundary;
     int mixup;
+    int cutout;
     float label_smooth_eps;
     int resize_step;
     int attention;
@@ -982,6 +983,7 @@ typedef struct load_args {
     int blur;
     int * blur_boundary;
     int mixup;
+    int cutout;
     float label_smooth_eps;
     float angle;
     float aspect;

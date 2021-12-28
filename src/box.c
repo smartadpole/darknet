@@ -148,6 +148,12 @@ float box_union(box a, box b)
     return u;
 }
 
+float box_union_cover(box a, box b)
+{
+    float u = b.w*b.h;
+    return u;
+}
+
 float box_iou_kind(box a, box b, IOU_LOSS iou_kind)
 {
     //IOU, GIOU, MSE, DIOU, CIOU
@@ -166,6 +172,18 @@ float box_iou(box a, box b)
 
     float I = box_intersection(a, b);
     float U = box_union(a, b);
+    if (I == 0 || U == 0) {
+        return 0;
+    }
+    return I / U;
+}
+
+float box_iou_cover(box a, box b)
+{
+    //return box_intersection(a, b)/box_union(a, b);
+
+    float I = box_intersection(a, b);
+    float U = box_union_cover(a, b);
     if (I == 0 || U == 0) {
         return 0;
     }

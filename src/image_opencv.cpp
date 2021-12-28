@@ -1340,6 +1340,18 @@ extern "C" image image_data_augmentation(mat_cv* mat, int w, int h,
     return out;
 }
 
+//Set the ROI pixel value to zero
+extern "C" image maskRectROI(image img, box roi){
+    cv::Mat image = image_to_mat(img);
+
+    cv::Rect rect_mask(roi.x, roi.y, roi.w, roi.h);
+    cv::Mat subImage = image(rect_mask);
+    subImage.setTo(0);
+
+    return mat_to_image(image);
+
+}
+
 // blend two images with (alpha and beta)
 extern "C" void blend_images_cv(image new_img, float alpha, image old_img, float beta)
 {

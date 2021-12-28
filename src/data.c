@@ -1049,7 +1049,7 @@ void blend_truth_mosaic(float *new_truth, int boxes, int truth_size, float *old_
 
 #include "http_stream.h"
 
-data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int truth_size, int classes, int use_flip, int use_gaussian_noise, int * gaussian_noise_boundary, int use_blur, int * blur_boundary, int use_mixup,
+data load_data_detection(int n, char **paths, int m, int w, int h, int c, int boxes, int truth_size, int classes, int use_flip, int use_gaussian_noise, int * gaussian_noise_boundary, int use_blur, int * blur_boundary, int use_mixup, int use_cutout,
     float jitter, float resize, float hue, float saturation, float exposure, int mini_batch, int track, int augment_speed, int letter_box, int mosaic_bound, int contrastive, int contrastive_jit_flip, int contrastive_color, int show_imgs)
 {
 
@@ -1324,6 +1324,60 @@ data load_data_detection(int n, char **paths, int m, int w, int h, int c, int bo
                 ai.data = d.X.vals[i];
             }
 
+            if(use_cutout && random_gen() % 2 == 0)
+            {
+                int cut_bx,cut_by,cut_bw,cut_bh;
+                while (use_cutout) {
+                    const float min = 0.05;  // 0.3*0.3 = 9%
+                    const float max = 0.15;  // 0.8*0.8 = 64%
+                    const int cut_w = rand_int(ai.w*min, ai.w*max);
+                    const int cut_h = rand_int(ai.h*min, ai.h*max);
+                    const int cut_x = rand_int(0, ai.w - cut_w - 1);
+                    const int cut_y = rand_int(0, ai.h - cut_h - 1);
+                    const int left = cut_x;
+                    const int right = cut_x + cut_w;
+                    const int top = cut_y;
+                    const int bot = cut_y + cut_h;
+
+                    assert(cut_x >= 0 && cut_x <= ai.w);
+                    assert(cut_y >= 0 && cut_y <= ai.h);
+                    assert(cut_w >= 0 && cut_w <= ai.w);
+                    assert(cut_h >= 0 && cut_h <= ai.h);
+
+                    assert(right >= 0 && right <= ai.w);
+                    assert(bot >= 0 && bot <= ai.h);
+
+                    assert(top <= bot);
+                    assert(left <= right);
+
+                    box black ={(right+cut_x)/2.0,(bot+cut_y)/2.0,cut_w,cut_h};
+
+                    int iou_out=0;
+                    int t;
+                    for (t = 0; t < boxes; ++t) {
+                        box b = float_to_box_stride(d.y.vals[i] + t*truth_size, 1);
+                        if (!b.x) break;
+                        box truth ={b.x *ai.w,b.y*ai.h,b.w *ai.w,b.h *ai.h};
+                        float iou=box_iou_cover(black,truth);
+                        if(iou>0.5) {
+                            iou_out=1;
+                            break;
+                        }
+                    }
+
+                    if (!iou_out) {
+                        cut_bx=cut_x;
+                        cut_by=cut_y;
+                        cut_bw=cut_w;
+                        cut_bh=cut_h;
+                        break;
+                    }
+                }
+
+                box roi={cut_bx,cut_by,cut_bw,cut_bh};
+                ai = maskRectROI(ai,roi);
+
+            }
 
             if (show_imgs && i_mixup == use_mixup)   // delete i_mixup
             {
@@ -1594,7 +1648,7 @@ void *load_thread(void *ptr)
     } else if (a.type == REGION_DATA){
         *a.d = load_data_region(a.n, a.paths, a.m, a.w, a.h, a.num_boxes, a.classes, a.jitter, a.hue, a.saturation, a.exposure);
     } else if (a.type == DETECTION_DATA){
-        *a.d = load_data_detection(a.n, a.paths, a.m, a.w, a.h, a.c, a.num_boxes, a.truth_size, a.classes, a.flip, a.gaussian_noise, a.gaussian_noise_boundary, a.blur, a.blur_boundary, a.mixup, a.jitter, a.resize,
+        *a.d = load_data_detection(a.n, a.paths, a.m, a.w, a.h, a.c, a.num_boxes, a.truth_size, a.classes, a.flip, a.gaussian_noise, a.gaussian_noise_boundary, a.blur, a.blur_boundary, a.mixup, a.cutout, a.jitter, a.resize,
             a.hue, a.saturation, a.exposure, a.mini_batch, a.track, a.augment_speed, a.letter_box, a.mosaic_bound, a.contrastive, a.contrastive_jit_flip, a.contrastive_color, a.show_imgs);
     } else if (a.type == SWAG_DATA){
         *a.d = load_data_swag(a.paths, a.n, a.classes, a.jitter);
