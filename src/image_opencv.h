@@ -104,6 +104,9 @@ image image_data_augmentation(mat_cv* mat, int w, int h,
     float dhue, float dsat, float dexp,
     int gaussian_noise,int * gaussian_noise_boundary, int blur, int * blur_boundary, int num_boxes, int truth_size, float *truth);
 
+//Set the ROI pixel value to zero
+image maskRectROI(image img, box roi);
+
 // blend two images with (alpha and beta)
 void blend_images_cv(image new_img, float alpha, image old_img, float beta);
 

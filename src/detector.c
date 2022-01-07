@@ -152,6 +152,7 @@ void train_detector(char *datacfg, char *cfgfile, char *weightfile, int *gpus, i
     args.blur = net.blur;
     args.blur_boundary = net.blur_boundary;
     args.mixup = net.mixup;
+    args.cutout = net.cutout;
     args.exposure = net.exposure;
     args.saturation = net.saturation;
     args.hue = net.hue;
