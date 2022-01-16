@@ -464,6 +464,7 @@ struct layer {
     float * spatial_mean;
     float * mean;
     float * variance;
+    float * variance_updates;
 
     float * mean_delta;
     float * variance_delta;
@@ -616,6 +617,7 @@ struct layer {
 
     float * mean_gpu;
     float * variance_gpu;
+    float * variance_updates_gpu;
     float * m_cbn_avg_gpu;
     float * v_cbn_avg_gpu;
 

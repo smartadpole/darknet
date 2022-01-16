@@ -1181,6 +1181,12 @@ __global__ void simple_input_shortcut_kernel(float *in, int size, float *add, fl
     out[id] = in[id] + add[id];
 }
 
+extern "C" void simple_input_shortcut_gpu(float *in, int size, float *add, float *out)
+{
+    simple_input_shortcut_kernel << <cuda_gridsize(size), BLOCK, 0, get_cuda_stream() >> >(in, size, add, out);
+    CHECK_CUDA(cudaPeekAtLastError());
+}
+
 __global__ void input_shortcut_kernel(float *in, int size, int minw, int minh, int minc, int stride, int sample, int batch, int w1, int h1, int c1, float *add, int w2, int h2, int c2, float *out)
 {
     int id = (blockIdx.x + blockIdx.y*gridDim.x) * blockDim.x + threadIdx.x;

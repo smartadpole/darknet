@@ -32,6 +32,7 @@ layer make_batchnorm_layer(int batch, int w, int h, int c, int train)
 
     layer.mean = (float*)xcalloc(c, sizeof(float));
     layer.variance = (float*)xcalloc(c, sizeof(float));
+    layer.variance_updates = (float*)xcalloc(c, sizeof(float));
 
     layer.rolling_mean = (float*)xcalloc(c, sizeof(float));
     layer.rolling_variance = (float*)xcalloc(c, sizeof(float));
@@ -67,6 +68,7 @@ layer make_batchnorm_layer(int batch, int w, int h, int c, int train)
 
     layer.mean_gpu = cuda_make_array(layer.mean, c);
     layer.variance_gpu = cuda_make_array(layer.variance, c);
+    layer.variance_updates_gpu = cuda_make_array(layer.variance_updates, c);
 
     layer.rolling_mean_gpu = cuda_make_array(layer.mean, c);
     layer.rolling_variance_gpu = cuda_make_array(layer.variance, c);
@@ -374,6 +376,10 @@ void backward_batchnorm_layer_gpu(layer l, network_state state)
 #ifdef CUDNN
     float one = 1;
     float zero = 0;
+
+    constrain_weight_updates_ongpu(l.nweights, 0.001, l.variance_gpu, l.variance_updates_gpu); // slimming scale 0.001
+    simple_input_shortcut_gpu(l.variance_gpu, l.nweights, l.variance_updates_gpu, l.variance_updates_gpu);
+
     cudnnBatchNormalizationBackward(cudnn_handle(),
         CUDNN_BATCHNORM_SPATIAL,
         &one,
@@ -392,7 +398,8 @@ void backward_batchnorm_layer_gpu(layer l, network_state state)
         l.bias_updates_gpu,        // output (should be FP32)
         .00001,
         l.mean_gpu,                // input (should be FP32)
-        l.variance_gpu);        // input (should be FP32)
+        l.variance_updates_gpu);        // input (should be FP32)
+
     simple_copy_ongpu(l.outputs*l.batch, l.output_gpu, l.delta_gpu);
     //simple_copy_ongpu(l.outputs*l.batch, l.x_norm_gpu, l.delta_gpu);
 #else   // CUDNN

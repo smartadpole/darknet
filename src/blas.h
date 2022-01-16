@@ -116,6 +116,7 @@ void shortcut_gpu(int batch, int w1, int h1, int c1, float *add, int w2, int h2,
 void shortcut_multilayer_gpu(int src_outputs, int batch, int n, int *outputs_of_layers_gpu, float **layers_output_gpu, float *out, float *in, float *weights_gpu, int nweights, WEIGHTS_NORMALIZATION_T weights_normalization);
 void backward_shortcut_multilayer_gpu(int src_outputs, int batch, int n, int *outputs_of_layers_gpu, float **layers_delta_gpu, float *delta_out, float *delta_in,
     float *weights, float *weight_updates, int nweights, float *in, float **layers_output, WEIGHTS_NORMALIZATION_T weights_normalization);
+void simple_input_shortcut_gpu(float *in, int size, float *add, float *out);
 void input_shortcut_gpu(float *in, int batch, int w1, int h1, int c1, float *add, int w2, int h2, int c2, float *out);
 void backward_scale_gpu(float *x_norm, float *delta, int batch, int n, int size, float *scale_updates);
 void mean_array_gpu(float *src, int size, float alpha, float *avg);

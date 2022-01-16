@@ -483,6 +483,7 @@ void free_convolutional_batchnorm(convolutional_layer *l)
         if (l->scale_updates)   free(l->scale_updates),     l->scale_updates = NULL;
         if (l->mean)            free(l->mean),              l->mean = NULL;
         if (l->variance)        free(l->variance),          l->variance = NULL;
+        if (l->variance_updates) free(l->variance_updates),  l->variance_updates = NULL;
         if (l->mean_delta)      free(l->mean_delta),        l->mean_delta = NULL;
         if (l->variance_delta)  free(l->variance_delta),    l->variance_delta = NULL;
         if (l->rolling_mean)    free(l->rolling_mean),      l->rolling_mean = NULL;
@@ -749,6 +750,7 @@ convolutional_layer make_convolutional_layer(int batch, int steps, int h, int w,
 
                     l.mean_gpu = cuda_make_array(l.mean, n);
                     l.variance_gpu = cuda_make_array(l.variance, n);
+                    l.variance_updates_gpu = cuda_make_array(l.variance_updates, n);
                     l.m_cbn_avg_gpu = cuda_make_array(l.mean, n);
                     l.v_cbn_avg_gpu = cuda_make_array(l.variance, n);
 #ifndef CUDNN

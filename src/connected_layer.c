@@ -137,6 +137,7 @@ connected_layer make_connected_layer(int batch, int steps, int inputs, int outpu
 
         l.mean_gpu = cuda_make_array(l.mean, outputs);
         l.variance_gpu = cuda_make_array(l.variance, outputs);
+        l.variance_updates_gpu = cuda_make_array(l.variance_updates, outputs);
 
         l.rolling_mean_gpu = cuda_make_array(l.mean, outputs);
         l.rolling_variance_gpu = cuda_make_array(l.variance, outputs);
